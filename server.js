@@ -2,107 +2,38 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import bcrypt from 'bcrypt';
 import cors from 'cors';
+import knex from 'knex';
+
+import {handleRegister} from './controllers/register.js';
+import {handleSignIn} from './controllers/signIn.js';
+import {handleProfileGet} from './controllers/profile.js';
+import {handleImage, handleApiCall} from './controllers/image.js';
+
+
+const db = knex ({
+    client: 'pg',
+    connection: {
+        host: '127.0.0.1',
+        port: '5432',
+        user: 'postgres',
+        password: '090327ha',
+        database: 'facerecog'
+    }
+})
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
-const database = {
-    users: [
-        {
-            id: '1',
-            name: 'John',
-            email: 'john@gmail.com',
-            password: "cookies",
-            entries: 0,
-            joined: new Date()
-        },
-        {
-            id: '2',
-            name: 'Sally',
-            email: 'sally@gmail.com',
-            password: "bananas",
-            entries: 0,
-            joined: new Date()
-        }
-    ],
-    login: [
-        {
-            id: '987',
-            hash: '',
-            email: 'john@gmail.com'
-        }
-    ]
-}
+app.post('/signin', (req, res) => {handleSignIn(req, res, db, bcrypt)})
 
-app.get('/', (req, res) => {
-    res.send(database.users);
-})
+app.post('/register', (req, res) => {handleRegister(req, res, db, bcrypt)})
 
-app.post('/signin', (req, res) => { 
+app.get('/profile/:id', (req, res) => {handleProfileGet(req, res, db)})
 
-    if (req.body.email === database.users[0].email && 
-        req.body.password === database.users[0].password) {
-            res.json(database.users[0]);
-    } else {
-        res.status(400).json('error logging in')
-    }
-})
+app.put('/image', (req, res) => {handleImage(req, res, db)})
 
-app.post('/register', (req, res) => {
-    const { email, name, password } = req.body;
-    bcrypt.hash(password, 10, function(err, hash) {
-        console.log(hash);
-    });
-    database.users.push({
-        id: '3',
-        name: name,
-        email: email,
-        entries: 0,
-        joined: new Date()
-    })
-    res.json(database.users[database.users.length - 1]);
-})
-
-app.get('/profile/:id', (req, res) => {
-    const { id } = req.params;
-    let found = false;
-    database.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            return res.json(user);
-        }
-    })
-    if (!found) {
-        res.status(400).json('Not Found')
-    }
-})
-
-app.put('/image', (req, res) => {
-    const { id } = req.body;
-    let found = false;
-    database.users.forEach(user => {
-        if (user.id === id) {
-            found = true;
-            user.entries++;
-            return res.json(user.entries);
-        }
-    })
-    if (!found) {
-        res.status(400).json('Not Found');
-    }
-})
-
-// bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
-//     // Store hash in your password DB.
-// });
-
-// bcrypt.compare(myPlaintextPassword, hash, function(err, result) {
-//     // result == true
-// });
-// bcrypt.compare(someOtherPlaintextPassword, hash, function(err, result) {
-//     // result == false
-// });
+app.post('/imageurl', (req, res) => {handleApiCall(req, res)})
 
 app.listen(3000, () => {
     console.log('Server working');
