@@ -25,6 +25,10 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+app.get(".", (reqm, res)_=> {
+    res.send(database.users);
+})
+
 app.post('/signin', (req, res) => {handleSignIn(req, res, db, bcrypt)})
 
 app.post('/register', (req, res) => {handleRegister(req, res, db, bcrypt)})
