@@ -13,11 +13,11 @@ import {handleImage, handleApiCall} from './controllers/image.js';
 const db = knex ({
     client: 'pg',
     connection: {
-        host: 'postgresql-closed-48980',
-        port: '5432',
-        user: 'postgres',
-        password: '',
-        database: 'facerecog'
+        host: process.env.DATABASE_URL,
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+            rejectUnauthorized: false
+        }
     }
 })
 
